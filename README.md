@@ -1,5 +1,4 @@
 # FanSetQt
-==========================
 
 ## Description
 Max out Acer fan speed - GUI Application
