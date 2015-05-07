@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>fancontroller.pl</file>
+    </qresource>
+</RCC>
