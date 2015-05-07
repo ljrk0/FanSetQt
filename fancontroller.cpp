@@ -52,7 +52,9 @@ bool FanController::read_uchar(const HANDLE hDevice, const unsigned char port,
     bool status;
 
     if (!hDevice) {
+#ifndef QT_NO_DEBUG
         printf("Invalid device handle: %u\n", hDevice);
+#endif
         return false;
     }
 
@@ -61,9 +63,10 @@ bool FanController::read_uchar(const HANDLE hDevice, const unsigned char port,
                              lpOutBuffer, nOutBufferSize, &bytesReturned, NULL);
 
     if (!status || bytesReturned != 1) {
+#ifndef QT_NO_DEBUG
         printf("%s: Unable to read from port 0x%02x\n", __FUNCTIONW__, port);
-        printf("Error code: 0x%x; bytesReturned: %u\n",
-                GetLastError(), bytesReturned);
+        printf("Error code: 0x%x; bytesReturned: %u\n", GetLastError(), bytesReturned);
+#endif
         return false;
     }
 
@@ -83,7 +86,9 @@ bool FanController::write_uchar(const HANDLE hDevice, const unsigned char port, 
     BOOL status;
 
     if (hDevice < 0) {
+#ifndef QT_NO_DEBUG
         printf("Invalid file handle %x\n", hDevice);
+#endif
         return false;
     }
 
@@ -91,7 +96,9 @@ bool FanController::write_uchar(const HANDLE hDevice, const unsigned char port, 
             NULL, 0, &bytesReturned, NULL);
 
     if (!status) {
+#ifndef QT_NO_DEBUG
         printf("Error writing 0x%2x to port 0x%2x. Code: 0x%x", value, port, GetLastError());
+#endif
         return false;
     }
 
@@ -111,8 +118,10 @@ bool FanController::wait_until_bitmask_is_value(const HANDLE hDevice,
             return true;
         }
     }
+#ifndef QT_NO_DEBUG
     printf("current value: 0x%2x\n", currentValue);
     printf("%s: timeout\n", __FUNCTION__);
+#endif
     return false;
 }
 
@@ -122,14 +131,18 @@ bool FanController::ec_intro_sequence(HANDLE hDevice)
     if (!read_uchar(hDevice, 0x68, &value)) {
         return false;
     }
+#ifndef QT_NO_DEBUG
     printf("%s: read 0x%02x from port 0x68\n", __FUNCTION__, value);
+#endif
     if (!wait_until_bitmask_is_value(hDevice, 0x02, 0x00)) {
         return false;
     }
     if (!write_uchar(hDevice, 0x6C, 0x59)) {
         return false;
     }
+#ifndef QT_NO_DEBUG
     printf("%s: successfully writting 0x59 to port 0x6C\n", __FUNCTION__);
+#endif
     return true;
 }
 
@@ -147,7 +160,9 @@ bool FanController::ec_close_sequence(HANDLE hDevice)
     if (!write_uchar(hDevice, 0x6C, 0xFF)) {
         return false;
     }
+#ifndef QT_NO_DEBUG
     printf("%s: Successful.\n", __FUNCTION__);
+#endif
     return true;
 }
 
@@ -162,7 +177,9 @@ bool FanController::setFan(bool on)
         FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
 
     if (lpcDriverHandle == INVALID_HANDLE_VALUE) {
+#ifndef QT_NO_DEBUG
         printf("Unable to open LPC driver. Error 0x%x\n", GetLastError());
+#endif
         system("pause");
         return 1;
     }
@@ -184,14 +201,18 @@ bool FanController::setFan(bool on)
         if (!write_uchar(lpcDriverHandle, 0x68, 0x77)) {
             goto closing_sequence;
         } else {
+#ifndef QT_NO_DEBUG
             printf("FAN ON\n");
+#endif
         }
     } else
     {
         if (!write_uchar(lpcDriverHandle, 0x68, 0x76)) {
             goto closing_sequence;
         } else {
-            printf("FAN ON\n");
+#ifndef QT_NO_DEBUG
+            printf("FAN OFF\n");
+#endif
         }
     }
 
@@ -200,11 +221,17 @@ closing_sequence:
     ec_close_sequence(lpcDriverHandle);
 
     if (CloseHandle(lpcDriverHandle)) {
+#ifndef QT_NO_DEBUG
         printf("Driver handler closed successfully\n");
+#endif
     } else {
+#ifndef QT_NO_DEBUG
         printf("Unable to close handle. Error: %x\n", GetLastError());
+#endif
     }
+#ifndef QT_NO_DEBUG
     system("pause");
+#endif
     return 1;
 
    //  printf("Enter port number: "); scanf("%s", &port_number_string);
