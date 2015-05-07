@@ -223,7 +223,7 @@ bool FanController::setFan(bool on)
     if (on)
         system("perl fancontroller.pl MAX");
     else
-        system("perl fancontroller.pl");
+        system("perl fancontroller.pl NORMAL");
     return true;
 }
 
