@@ -9,7 +9,7 @@ FanSetQt::FanSetQt(QWidget *parent) :
     fc = new FanController;
 
 #ifdef _MSC_VER
-    ui->InfoLabel->text().fromStdString("Hint: This application needs to be run as administrator!");
+    //ui->InfoLabel->setText(QString::fromStdString("Hint: This application needs to be run as administrator!"));
 #else
     ui->InfoLabel->setText(QString::fromStdString("Hint: This application needs to be run as root!"));
 #endif

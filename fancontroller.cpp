@@ -37,7 +37,7 @@ FanController::FanController()
 
 
 
-bool read_uchar(const HANDLE hDevice, const unsigned char port,
+bool FanController::read_uchar(const HANDLE hDevice, const unsigned char port,
                 unsigned char* const value)
 {
     const DWORD nInBufferSize = 8;
@@ -58,7 +58,7 @@ bool read_uchar(const HANDLE hDevice, const unsigned char port,
 
     lpInBuffer[0] = port;
     status = DeviceIoControl(hDevice, dwIoControlCode, lpInBuffer, nInBufferSize,
-            lpOutBuffer, nOutBufferSize, &bytesReturned, NULL);
+                             lpOutBuffer, nOutBufferSize, &bytesReturned, NULL);
 
     if (!status || bytesReturned != 1) {
         printf("%s: Unable to read from port 0x%02x\n", __FUNCTIONW__, port);
@@ -71,7 +71,7 @@ bool read_uchar(const HANDLE hDevice, const unsigned char port,
     return true;
 }
 
-bool write_uchar(const HANDLE hDevice, const unsigned char port, const unsigned char value)
+bool FanController::write_uchar(const HANDLE hDevice, const unsigned char port, const unsigned char value)
 {
     const DWORD dwIoControlCode = CTL_CODE(FILE_DEVICE_UNKNOWN, 0x801,
             METHOD_BUFFERED, FILE_READ_ACCESS | FILE_WRITE_ACCESS);
@@ -98,7 +98,7 @@ bool write_uchar(const HANDLE hDevice, const unsigned char port, const unsigned 
     return true;
 }
 
-bool wait_until_bitmask_is_value(const HANDLE hDevice,
+bool FanController::wait_until_bitmask_is_value(const HANDLE hDevice,
                                  const unsigned int bitmask,
                                  const unsigned char value)
 {
@@ -116,7 +116,7 @@ bool wait_until_bitmask_is_value(const HANDLE hDevice,
     return false;
 }
 
-bool ec_intro_sequence(HANDLE hDevice)
+bool FanController::ec_intro_sequence(HANDLE hDevice)
 {
     unsigned char value;
     if (!read_uchar(hDevice, 0x68, &value)) {
@@ -133,7 +133,7 @@ bool ec_intro_sequence(HANDLE hDevice)
     return true;
 }
 
-bool ec_close_sequence(HANDLE hDevice)
+bool FanController::ec_close_sequence(HANDLE hDevice)
 {
     unsigned char value;
     if (!read_uchar(hDevice, 0x68, &value)) {
@@ -151,12 +151,12 @@ bool ec_close_sequence(HANDLE hDevice)
     return true;
 }
 
-int setFan(bool on)
+bool FanController::setFan(bool on)
 {
     HANDLE lpcDriverHandle;
-    char port_number_string[128];
-    unsigned int port_number;
-    BYTE value;
+    //char port_number_string[128];
+    //unsigned int port_number;
+    //BYTE value;
 
     lpcDriverHandle = CreateFileA("\\\\.\\LPCFilter", GENERIC_READ|GENERIC_WRITE,
         FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
