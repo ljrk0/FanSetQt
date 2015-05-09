@@ -5,10 +5,10 @@
 #include <tchar.h>
 #include <Windows.h>
 #include <assert.h>
+#include <stdio.h>
 
 #elif LINUXT
 
-#include <stdio.h>
 #include <string>
 #include <sstream>
 #include <iostream>
