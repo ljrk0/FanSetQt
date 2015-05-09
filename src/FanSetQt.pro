@@ -14,12 +14,17 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         fansetqt.cpp \
-    fancontroller.cpp
+    fancontroller.cpp \
+    aboutfrm.cpp
 
 HEADERS  += fansetqt.h \
-    fancontroller.h
+    fancontroller.h \
+    aboutfrm.h
 
-FORMS    += fansetqt.ui
+FORMS    += fansetqt.ui \
+    aboutfrm.ui
 
 RESOURCES += \
     resources.qrc
+
+CONFIG += c++11

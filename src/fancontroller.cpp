@@ -24,6 +24,8 @@
 
 #include "fancontroller.h"
 
+
+
 FanController::FanController()
 {
 
@@ -241,6 +243,200 @@ closing_sequence:
 
    //  system("pause");
    //  return 0;
+}
+
+
+
+
+
+
+#elif LINUXT
+
+//#define extern static
+//#include <asm-generic/ioctl.h>
+
+
+bool FanController::setFan(bool on)
+{
+    initialize_ioports();
+    if (ec_intro_sequence())
+    {
+#ifndef QT_NO_DEBUG
+        printf("Unable to perform intro sequence");
+#endif
+        //goto closing_sequence;
+        if (ec_outro_sequence())
+        {
+#ifndef QT_NO_DEBUG
+            printf("Unable to perform outro sequence");
+#endif
+        } else
+        {
+            printf("ec_outro_sequence successful");
+        }
+        close_ioports();
+        return 1;
+    } else {
+#ifndef QT_NO_DEBUG
+        printf("ec_intro_sequence successful");
+#endif
+    }
+
+    if (wait_until_bitmask_is_value(0x02, 0x00)) //hDevice parameter?
+    {
+#ifndef QT_NO_DEBUG
+        printf("Error waiting for magic value");
+#endif
+        //goto closing_sequence;
+        if (ec_outro_sequence())
+        {
+#ifndef QT_NO_DEBUG
+            printf("Unable to perform outro sequence");
+#endif
+        } else
+        {
+            printf("ec_outro_sequence successful");
+        }
+        close_ioports();
+        return 1;
+    }
+
+    int value = 0x76;
+    if (on)
+    {
+        value = 0x77;
+    }
+    if (write_uchar(0x68, value)) //hDevice?
+    {
+#ifndef QT_NO_DEBUG
+//        printf("Unable to write magic 0x%02X command" + std::to_string(value));
+#endif
+    } else
+    {
+#ifndef QT_NO_DEBUG
+//        printf("Successfully sent command 0x%02X" + std::to_string(value));
+#endif
+    }
+
+
+    //closing_sequence:
+    if (ec_outro_sequence())
+    {
+#ifndef QT_NO_DEBUG
+        printf("Unable to perform outro sequence");
+#endif
+    } else
+    {
+        printf("ec_outro_sequence successful");
+    }
+
+    close_ioports();
+}
+
+bool FanController::initialize_ioports()
+{
+    port.open("/dev/port", std::fstream::in | std::fstream::out | std::fstream::app);
+    backup = port.tellg();
+}
+
+void FanController::close_ioports()
+{
+    port.seekg(backup);
+    port.close();
+}
+
+int FanController::read_uchar(int portN)
+{
+    int mybackup = port.tellg();
+    port.seekg(portN);
+    char * mybuffer = new char [1];
+    port.read(mybuffer, 1);
+    int myvalue = mybuffer[1];
+    port.seekg(mybackup);
+    return myvalue;
+    //TODO? check if 1?
+}
+
+bool FanController::write_uchar(int portN, int value)
+{
+    if (value == 0xff)
+    {
+        //ERROR
+        return 1;
+    } else
+    {
+        int mybackup = port.tellg();
+        char * mybuffer = new char [1];
+        mybuffer[1]=value;
+        port.seekg(portN);
+        port.write(mybuffer,1);
+        port.seekg(mybackup);
+    }
+}
+
+bool FanController::wait_until_bitmask_is_value(int mask, int value)
+{
+    int mybackup = port.tellg();
+    port.seekg(0x68);
+    char * mybuffer = new char [1];
+
+    for(int i=0; i<10000; i++)
+    {
+        port.read(mybuffer, 1);
+        if ( (mybuffer[1] & mask) == value)
+        {
+            port.seekg(mybackup);
+            return 0;
+        } else
+        {
+        printf("Error; TIMEOUT");
+        port.seekg(mybackup);
+        return 1;
+        }
+    }
+}
+
+bool FanController::ec_intro_sequence()
+{
+    //int writePauseVal;
+    if(wait_until_bitmask_is_value(0x80,0x00))
+        return 1;
+    read_uchar(0x68);
+    //port.read(writePauseVal, 1);
+    if(wait_until_bitmask_is_value(0x02,0x00))
+        return 1;
+    write_uchar(0x6C,0x59);
+}
+
+bool FanController::ec_outro_sequence()
+{
+    read_uchar(0x68);
+    if (wait_until_bitmask_is_value(0x20,0x00))
+        return 1;
+    write_uchar(0x6C,0xFF);
+}
+
+int FanController::debug()
+{
+    //char * mybuffer = new char [1];
+    //int myfd;
+    //std::fstream myport;
+    //myport.open("/dev/port", std::fstream::in | std::fstream::out | std::fstream::app);
+    // int back;
+    // back = myport.tellg();
+    // myport.seekg(0x68);
+    // myport.read(mybuffer,1);
+    // myport.seekg(back);
+//    off_t backup;
+    //myfd = fileno(::fopen("/dev/port", "rw"));
+   //  backup = lseek(myfd, 0x00, SEEK_SET);
+   //  lseek(myfd, 0x68, SEEK_SET);
+   //  read(myfd, );
+   //  lseek(myfd, backup, SEEK_SET);
+    return read_uchar(0x68);
+    // myport.close();
+    // char test = mybuffer[0];
+    // return mybuffer;
 }
 
 #else
